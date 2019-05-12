@@ -2,6 +2,10 @@
 #include <esp_log.h>
 #include <nvs_flash.h>
 #include <mfl/Httpd.hpp>
+#include <mfl/Display.hpp>
+#include "MainView.hpp"
+
+#include <iostream>
 
 
 const std::string SSID = "HOTEL DESCANSERIA";
@@ -30,15 +34,27 @@ void app_main() {
 
     mfl::Wifi wifi(HOSTNAME, SSID, WIFI_PASSWORD);
     mfl::Httpd app(80);
+    mfl::Display display(mfl::Display::ControllerType::ssd1306, DISPLAY_CLOCK_PIN, DISPLAY_DATA_PIN, DISPLAY_RESET_PIN);
+    smartscreen::MainView mainView(display);
+
+    mainView.setMessage("hello bob");
+    mainView.setWifiStatus("-");
 
     wifi.start(
-            [&wifi, &app](const ip4_addr &addr) {
+            [&wifi, &app, &mainView](const ip4_addr &addr) {
                 ESP_LOGI(tag, "wifi started successfully");
                 wifi.addService("screen", mfl::Wifi::Protocol::tcp, 80, "foo");
+                mainView.setIp(addr);
+                mainView.setWifiStatus("c");
+
                 ESP_ERROR_CHECK(app.start());
+                app.get("/", MFL_HTTPD_HANDLER(&, {
+                    std::cout << "hello!!!!" << std::endl;
+                }));
             },
-            [] {
+            [&mainView] {
                 ESP_LOGI(tag, "failed to start wifi");
+                mainView.setWifiStatus("f");
             }
     );
 
