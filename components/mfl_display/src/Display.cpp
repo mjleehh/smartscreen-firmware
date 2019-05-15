@@ -175,7 +175,7 @@ uint8_t Display::delayCb(u8x8_t *handle, uint8_t msg, uint8_t arg_int, void *arg
 // ---------------------------------------------------------------------------------------------------------------------
 
 Display* Display::displayFromHandle(u8x8_t* handle) {
-    constexpr const size_t delta =
+    const size_t delta =
             reinterpret_cast<char*>(&static_cast<Display*>(nullptr)->handle_) - static_cast<char*>(nullptr);
 
     return reinterpret_cast<Display*>(reinterpret_cast<char*>(handle) - delta);
