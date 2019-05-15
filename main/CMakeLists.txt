@@ -3,5 +3,6 @@ set(COMPONENT_ADD_INCLUDEDIRS src)
 
 set(COMPONENT_PRIV_REQUIRES mfl_wifi)
 set(COMPONENT_PRIV_REQUIRES mfl_httpd)
+set(COMPONENT_PRIV_REQUIRES modern_json)
 
 register_component()

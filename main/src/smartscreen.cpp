@@ -4,6 +4,7 @@
 #include <mfl/Httpd.hpp>
 #include <mfl/Display.hpp>
 #include "MainView.hpp"
+#include <nlohmann/json.hpp>
 
 #include <iostream>
 
@@ -26,8 +27,6 @@ const char* tag = "main";
 
 extern "C" {
 
-using Foo = std::array<uint8_t, 2>;
-
 void app_main() {
     ESP_ERROR_CHECK(nvs_flash_init());
     tcpip_adapter_init();
@@ -48,8 +47,19 @@ void app_main() {
                 mainView.setWifiStatus("c");
 
                 ESP_ERROR_CHECK(app.start());
-                app.get("/", MFL_HTTPD_HANDLER(&, {
+                app.get("/", MFL_HTTPD_HANDLER({
                     std::cout << "hello!!!!" << std::endl;
+                }));
+
+                app.put("/foo/:arg1/:arg2/foo/:arg3", MFL_HTTPD_HANDLER({
+                    std::cout << "hello2!!!!" << std::endl;
+                    std::cout << ctx.body << std::endl;
+                    for (auto arg : ctx.params) {
+                        std::cout << arg.first << " " << arg.second << std::endl;
+                    }
+                    nlohmann::json body;
+                    body["msg"] = "you called to foobar";
+                    ctx.res.body = body.dump();
                 }));
             },
             [&mainView] {
