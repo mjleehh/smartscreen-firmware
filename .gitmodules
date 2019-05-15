@@ -2,5 +2,5 @@
 	path = libs/u8g2
 	url = https://github.com/olikraus/u8g2.git
 [submodule "libs/json/src"]
-	path = libs/json/src
+	path = libs/modern_json/src
 	url = https://github.com/nlohmann/json.git
