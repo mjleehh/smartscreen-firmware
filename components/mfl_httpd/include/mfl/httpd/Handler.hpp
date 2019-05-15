@@ -1,9 +1,18 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <esp_err.h>
-#include <stdexcept>
+#include <mfl/httpd/Context.hpp>
+#include <mfl/helpers/macros.hpp>
+
+#include <functional>
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+#define MFL_HTTPD_HANDLER_1(code) [](mfl::httpd::Context& ctx) code
+#define MFL_HTTPD_HANDLER_2(capture, code) [capture](mfl::httpd::Context& ctx) code
+#define MFL_HTTPD_HANDLER(...) \
+    MFL_HELPERS_GET_ARG_3(__VA_ARGS__, MFL_HTTPD_HANDLER_2, MFL_HTTPD_HANDLER_1)(__VA_ARGS__)
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 namespace mfl {
 
@@ -11,17 +20,7 @@ namespace httpd {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-struct UrlParseError : std::invalid_argument {
-    explicit UrlParseError(const std::string& what) : invalid_argument(what) {}
-};
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-void printUrl(const std::vector<std::string>& url);
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-std::vector <std::string> splitUrl(const std::string &str);
+using Handler = std::function<void(Context& ctx)>;
 
 // ---------------------------------------------------------------------------------------------------------------------
 

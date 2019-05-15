@@ -23,12 +23,24 @@ bool matchAny(const char *reference_uri, const char *uri_to_match, size_t match_
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-} // namespace anonymous
+bool isArg(const std::string& segment) {
+    return segment[0] == ':';
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+std::string argName(const std::string& segment) {
+    return segment.substr(1);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+} // namespace anonymous
+
+// =====================================================================================================================
+
 Httpd::Httpd(uint16_t port, size_t bufferSize)
-    : port_(port), bufferSize_(bufferSize)
+    : root_(std::vector<std::string>()), port_(port), bufferSize_(bufferSize)
 {
 
 }
@@ -39,6 +51,30 @@ Httpd::~Httpd() {
     if (activeServer != nullptr) {
         httpd_stop(activeServer);
     }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+esp_err_t Httpd::post(const std::string &uriTemplate, const httpd::Handler &handler) {
+    return addHandler(HTTP_POST, uriTemplate, handler);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+esp_err_t Httpd::get(const std::string &uriTemplate, const httpd::Handler &handler) {
+    return addHandler(HTTP_GET, uriTemplate, handler);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+esp_err_t Httpd::put(const std::string &uriTemplate, const httpd::Handler &handler) {
+    return addHandler(HTTP_PUT, uriTemplate, handler);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+esp_err_t Httpd::del(const std::string &uriTemplate, const httpd::Handler &handler) {
+    return addHandler(HTTP_DELETE, uriTemplate, handler);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -105,63 +141,117 @@ esp_err_t Httpd::start() {
     return err;
 }
 
-esp_err_t Httpd::get(const std::string& uriTemplate, const Httpd::Handler& handler) {
+// ---------------------------------------------------------------------------------------------------------------------
+
+esp_err_t Httpd::addHandler(httpd_method_t method, const std::string& uriTemplate, const httpd::Handler& handler) {
     auto uri = httpd::splitUrl(uriTemplate);
 
-    root_.get = handler;
+    auto *node = &root_;
+    auto uriPos = uri.begin();
 
-//    // edge case root
-//    if (uri.empty()) {
-//        if (root_.get) {
-//            throw httpd::EndpointError("handler for endpoint already defined");
-//        }
-//        root_.get = handler;
-//    }
+    while (uriPos != uri.end()) {
+        auto &segment = *uriPos;
+        if (segment[0] == ':') {
+            ESP_LOGE(tag, "URI arg with no node %s", uriTemplate.c_str());
+            return ESP_FAIL;
+        }
 
+        std::vector<std::string> args;
+        ++uriPos;
+        while (uriPos != uri.end() && isArg(*uriPos)) {
+            args.push_back(argName(*uriPos));
+            ++uriPos;
+        }
+
+        auto &children = node->children;
+        auto child = children.find(segment);
+        if (child != children.end()) {
+            if (args.size() != child->second.args.size()) {
+                ESP_LOGE(tag, "different argument number defined for existing node %s", uriTemplate.c_str());
+                return ESP_FAIL;
+            }
+            node = &child->second;
+        } else {
+            node = &children.emplace(segment, std::move(args)).first->second;
+        }
+    }
+
+    if (node->hasHandler(method)) {
+        ESP_LOGE(tag, "handler already defined for node %s", uriTemplate.c_str());
+        return ESP_FAIL;
+    }
+    node->setHandler(method, handler);
+    ESP_LOGI(tag, "added URI handler for %s", uriTemplate.c_str());
     return 0;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void Httpd::invokeHandler(const PathNode& node, httpd_req_t* req) {
+std::string Httpd::readBody(httpd_req_t* req) {
     auto bufferSize = std::max(activeServer->bufferSize_, req->content_len);
     auto maxDataLengh = bufferSize - 1;
     std::string buffer(bufferSize, '\0');
     auto bytesRead = httpd_req_recv(req, &buffer[0], maxDataLengh);
     if (bytesRead < 0) {
         // client closed the connection
-        return;
+        return ESP_OK;
     }
     buffer[bytesRead] = '\0';
-
-    switch (req->method) {
-        case HTTP_POST:
-            node.post(buffer);
-            break;
-        case HTTP_GET:
-            node.get(buffer);
-            break;
-        case HTTP_PUT:
-            node.put(buffer);
-            break;
-        case HTTP_DELETE:
-            node.del(buffer);
-            break;
-    }
+    return buffer;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 esp_err_t Httpd::genericHandler(httpd_req_t *req) {
     auto uri = httpd::splitUrl(req->uri);
-    auto& root = activeServer->root_;
+    const auto* node = &activeServer->root_;
+    std::map<std::string, std::string> argValues;
+    const httpd::PathNode* handlerNode = nullptr;
+
+    MFL_HELPERS_DEFER({
+        auto method = static_cast<httpd_method_t>(req->method);
+        if (handlerNode && handlerNode->hasHandler(method)) {
+            httpd::Context context(std::move(argValues), readBody(req), req);
+            handlerNode->handlerFromMethod(method)(context);
+            httpd_resp_send(req, context.res.body.data(), context.res.body.size());
+        } else {
+            std::string empty = "";
+            httpd_resp_send(req, empty.data(), empty.size());
+            httpd_resp_set_status(req, HTTPD_404);
+        }
+    });
 
     // edge case root
     if (uri.empty()) {
-        invokeHandler(root, req);
+        handlerNode = node;
+        return ESP_OK;
     }
-    auto res =  "URI POST Response";
-    httpd_resp_send(req, res, strlen(res));
+
+    try {
+        auto uriPos = uri.begin();
+
+        // traverse the tree until, the node described by the URI is encountered
+        while (uriPos != uri.end()) {
+            node = &node->children.at(*uriPos);
+            const auto& args = node->args;
+            auto argPos = args.begin();
+            ++uriPos;
+            while (argPos != args.end()) {
+                if (uriPos == uri.end()) {
+                    ESP_LOGI(tag, "URI path incomplete %s", req->uri);
+                    return ESP_OK;
+                }
+                argValues[*argPos] = *uriPos;
+                ++argPos;
+                ++uriPos;
+            }
+        }
+        handlerNode = node;
+
+    } catch(const std::out_of_range&) {
+        ESP_LOGI(tag, "URI path does not exist %s", req->uri);
+    }
+
     return ESP_OK;
 }
 

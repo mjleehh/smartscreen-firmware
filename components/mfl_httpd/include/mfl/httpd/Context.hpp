@@ -1,27 +1,34 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <esp_err.h>
-#include <stdexcept>
+#include <esp_http_server.h>
+#include <map>
 
 namespace mfl {
 
-namespace httpd {
+namespace  httpd {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-struct UrlParseError : std::invalid_argument {
-    explicit UrlParseError(const std::string& what) : invalid_argument(what) {}
+using Params = std::map<std::string, std::string>;
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+struct Response {
+    std::string body;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void printUrl(const std::vector<std::string>& url);
+struct Context {
+    Context(Params&& params, std::string&& body, httpd_req_t* handle)
+        : params(params), body(body), handle(handle)
+    {}
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-std::vector <std::string> splitUrl(const std::string &str);
+    Params params;
+    std::string body;
+    httpd_req_t *handle;
+    Response res;
+};
 
 // ---------------------------------------------------------------------------------------------------------------------
 
