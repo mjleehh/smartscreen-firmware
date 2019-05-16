@@ -1,7 +1,5 @@
 #pragma once
 
-#include <mfl/httpd/Response.hpp>
-
 #include <esp_http_server.h>
 #include <map>
 
@@ -9,20 +7,23 @@ namespace mfl::httpd {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+template<typename T>
+std::string serializeResponse(const T& response);
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 using Params = std::map<std::string, std::string>;
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-struct Context {
-    Context(Params&& params, std::string&& body, httpd_req_t* handle)
-        : params(params), body(body), handle(handle)
-    {}
+struct Response {
+    template<typename T>
+    void set(const T& value) {
+        body = serializeResponse(value);
+    }
 
-    Params params;
+    std::string returnType;
     std::string body;
-    httpd_req_t *handle;
-
-    Response res;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------

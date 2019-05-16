@@ -1,8 +1,6 @@
 #include <mfl/httpd/PathNode.hpp>
 
-namespace mfl {
-
-namespace httpd {
+namespace mfl::httpd {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -60,6 +58,4 @@ void PathNode::setHandler(httpd_method_t method, const Handler &handler) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-} // namespace httpd
-
-} // namespace mfl
+}

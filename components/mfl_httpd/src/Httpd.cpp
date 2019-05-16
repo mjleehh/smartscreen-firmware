@@ -39,8 +39,8 @@ std::string argName(const std::string& segment) {
 
 // =====================================================================================================================
 
-Httpd::Httpd(uint16_t port, size_t bufferSize)
-    : root_(std::vector<std::string>()), port_(port), bufferSize_(bufferSize)
+Httpd::Httpd(uint16_t port, size_t bufferSize, size_t stackSize)
+    : root_(std::vector<std::string>()), port_(port), bufferSize_(bufferSize), stackSize_(stackSize)
 {
 
 }
@@ -85,6 +85,8 @@ esp_err_t Httpd::start() {
         return ESP_FAIL;
     }
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+
+    config.stack_size = stackSize_;
     config.server_port = port_;
     config.uri_match_fn = matchAny;
 

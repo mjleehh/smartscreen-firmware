@@ -5,9 +5,7 @@
 #include <esp_err.h>
 #include <stdexcept>
 
-namespace mfl {
-
-namespace httpd {
+namespace mfl::httpd {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -25,6 +23,4 @@ std::vector <std::string> splitUrl(const std::string &str);
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-} // namespace httpd
-
-} // namespace mfl
+}

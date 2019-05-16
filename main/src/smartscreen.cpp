@@ -4,7 +4,7 @@
 #include <mfl/Httpd.hpp>
 #include <mfl/Display.hpp>
 #include "MainView.hpp"
-#include <nlohmann/json.hpp>
+#include <tojson.hpp>
 
 #include <iostream>
 
@@ -60,6 +60,22 @@ void app_main() {
                     nlohmann::json body;
                     body["msg"] = "you called to foobar";
                     ctx.res.body = body.dump();
+                }));
+
+                app.put("/message/:foo", MFL_HTTPD_HANDLER(&mainView,{
+                    try {
+                        nlohmann::json body = nlohmann::json::parse(ctx.body);
+                        std::cout << ctx.body << std::endl;
+                        std::cout << body.dump() << std::endl;
+                        auto s = body["msg"].get<std::string>();
+                        std::cout << s << std::endl;
+                        mainView.setMessage(s);
+                    } catch(...) {
+                        std::cout << "bad request" << std::endl;
+                    }
+
+                    nlohmann::json res = {};
+                    ctx.res.set(res);
                 }));
             },
             [&mainView] {

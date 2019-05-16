@@ -1,28 +1,19 @@
 #pragma once
 
-#include <mfl/httpd/Response.hpp>
-
-#include <esp_http_server.h>
-#include <map>
+#include <stdexcept>
 
 namespace mfl::httpd {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-using Params = std::map<std::string, std::string>;
+const uint16_t DEFAULT_PORT = 80;
+const size_t DEFAULT_BUFFER_SIZE = 3 * 4096;
+const size_t DEFAULT_STACK_SIZE = 3 * 4096;
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-struct Context {
-    Context(Params&& params, std::string&& body, httpd_req_t* handle)
-        : params(params), body(body), handle(handle)
-    {}
-
-    Params params;
-    std::string body;
-    httpd_req_t *handle;
-
-    Response res;
+struct EndpointError : std::invalid_argument {
+    explicit EndpointError(const std::string& what) : invalid_argument(what) {};
 };
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -2,33 +2,18 @@
 
 #include <mfl/httpd/Context.hpp>
 #include <mfl/httpd/PathNode.hpp>
+#include <mfl/httpd/Defaults.hpp>
+
 #include <lwip/ip_addr.h>
 #include <esp_event.h>
 #include <esp_err.h>
 
 namespace mfl {
 
-namespace  httpd {
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-const uint16_t DEFAULT_PORT = 80;
-const size_t DEFAULT_BUFFER_SIZE = 10 * 1024;
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-struct EndpointError : std::invalid_argument {
-    explicit EndpointError(const std::string& what) : invalid_argument(what) {};
-};
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-}
-
 // ---------------------------------------------------------------------------------------------------------------------
 
 struct Httpd {
-    explicit Httpd(uint16_t port = httpd::DEFAULT_PORT, size_t bufferSize = httpd::DEFAULT_BUFFER_SIZE);
+    explicit Httpd(uint16_t port = httpd::DEFAULT_PORT, size_t bufferSize = httpd::DEFAULT_BUFFER_SIZE, size_t stackSize = httpd::DEFAULT_STACK_SIZE);
     ~Httpd();
 
     esp_err_t post(const std::string& uriTemplate, const httpd::Handler& handler);
@@ -46,9 +31,10 @@ private:
     httpd::PathNode root_;
     uint16_t port_;
     size_t bufferSize_;
+    size_t stackSize_;
     httpd_handle_t handle_;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-} // namespace mfl
+}
