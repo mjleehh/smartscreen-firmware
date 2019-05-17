@@ -1,6 +1,17 @@
 #include <mfl/httpd/PathNode.hpp>
+#include <esp_log.h>
 
 namespace mfl::httpd {
+
+namespace {
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+const char* tag = "pathnode";
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -10,17 +21,18 @@ PathNode::PathNode(std::vector<std::string> &&args) : args(args) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-Handler &PathNode::handlerFromMethod(httpd_method_t method) {
+Handler<std::string>& PathNode::handlerFromMethod(Method method) {
     switch (method) {
-        case HTTP_POST:
+        case Method::post:
             return post;
-        case HTTP_GET:
+        case Method::get:
             return get;
-        case HTTP_PUT:
+        case Method::put:
             return put;
-        case HTTP_DELETE:
-            return get;
+        case Method::del:
+            return del;
         default:
+            ESP_LOGE(tag, "unsupported method");
             throw UnsupportedMethod();
 
     }
@@ -28,31 +40,31 @@ Handler &PathNode::handlerFromMethod(httpd_method_t method) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-const Handler &PathNode::handlerFromMethod(httpd_method_t method) const {
+const Handler<std::string> &PathNode::handlerFromMethod(Method method) const {
     switch (method) {
-        case HTTP_POST:
+        case Method::post:
             return post;
-        case HTTP_GET:
+        case Method::get:
             return get;
-        case HTTP_PUT:
+        case Method::put:
             return put;
-        case HTTP_DELETE:
-            return get;
+        case Method::del:
+            return del;
         default:
+            ESP_LOGE(tag, "unsopported method");
             throw UnsupportedMethod();
-
     }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-bool PathNode::hasHandler(httpd_method_t method) const {
+bool PathNode::hasHandler(Method method) const {
     return handlerFromMethod(method).operator bool();
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void PathNode::setHandler(httpd_method_t method, const Handler &handler) {
+void PathNode::setHandler(Method method, const Handler<std::string> &handler) {
     handlerFromMethod(method) = handler;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mfl/httpd/Handler.hpp>
+#include <mfl/httpd/Method.hpp>
 
 #include <map>
 #include <vector>
@@ -18,16 +19,16 @@ struct UnsupportedMethod : std::invalid_argument {
 struct PathNode {
     PathNode(std::vector<std::string>&& args);
 
-    Handler& handlerFromMethod(httpd_method_t method);
-    const Handler& handlerFromMethod(httpd_method_t method) const;
+    Handler<std::string>& handlerFromMethod(Method method);
+    const Handler<std::string>& handlerFromMethod(Method method) const;
 
-    bool hasHandler(httpd_method_t method) const;
-    void setHandler(httpd_method_t method, const Handler& handler);
+    bool hasHandler(Method method) const;
+    void setHandler(Method method, const Handler<std::string>& handler);
 
-    Handler post;
-    Handler get;
-    Handler put;
-    Handler del;
+    Handler<std::string> post;
+    Handler<std::string> get;
+    Handler<std::string> put;
+    Handler<std::string> del;
     std::vector<std::string> args;
     std::map<std::string, PathNode> children;
 };

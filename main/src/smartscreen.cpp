@@ -1,7 +1,8 @@
 #include <mfl/Wifi.hpp>
 #include <esp_log.h>
 #include <nvs_flash.h>
-#include <mfl/Httpd.hpp>
+#include <mfl/EspHttpd.hpp>
+#include <mfl/httpd/Router.hpp>
 #include <mfl/Display.hpp>
 #include "MainView.hpp"
 #include <tojson.hpp>
@@ -17,10 +18,6 @@ const mfl::Wifi::Bssid BSSID = {0x16, 0x18, 0xD6, 0x4F, 0x26, 0xA8};
 #define DISPLAY_DATA_PIN GPIO_NUM_4
 #define DISPLAY_RESET_PIN GPIO_NUM_16
 
-//const std::string SSID = "Bubblebet";
-//const std::string WIFI_PASSWORD = "uqgy4241";
-// const mfl::Wifi::Bssid BSSID;
-
 const std::string HOSTNAME = "smartscreen";
 
 const char* tag = "main";
@@ -32,7 +29,8 @@ void app_main() {
     tcpip_adapter_init();
 
     mfl::Wifi wifi(HOSTNAME, SSID, WIFI_PASSWORD);
-    mfl::Httpd app(80);
+    mfl::httpd::Router router;
+    mfl::EspHttpd app(router, 80);
     mfl::Display display(mfl::Display::ControllerType::ssd1306, DISPLAY_CLOCK_PIN, DISPLAY_DATA_PIN, DISPLAY_RESET_PIN);
     smartscreen::MainView mainView(display);
 
@@ -40,34 +38,19 @@ void app_main() {
     mainView.setWifiStatus("-");
 
     wifi.start(
-            [&wifi, &app, &mainView](const ip4_addr &addr) {
+            [&wifi, &app, &router, &mainView](const ip4_addr &addr) {
                 ESP_LOGI(tag, "wifi started successfully");
                 wifi.addService("screen", mfl::Wifi::Protocol::tcp, 80, "foo");
                 mainView.setIp(addr);
                 mainView.setWifiStatus("c");
 
-                ESP_ERROR_CHECK(app.start());
-                app.get("/", MFL_HTTPD_HANDLER({
-                    std::cout << "hello!!!!" << std::endl;
-                }));
+                app.start();
 
-                app.put("/foo/:arg1/:arg2/foo/:arg3", MFL_HTTPD_HANDLER({
-                    std::cout << "hello2!!!!" << std::endl;
-                    std::cout << ctx.body << std::endl;
-                    for (auto arg : ctx.params) {
-                        std::cout << arg.first << " " << arg.second << std::endl;
-                    }
-                    nlohmann::json body;
-                    body["msg"] = "you called to foobar";
-                    ctx.res.body = body.dump();
-                }));
-
-                app.put("/message/:foo", MFL_HTTPD_HANDLER(&mainView,{
+                mfl::httpd::Handler<nlohmann::json> f = [&mainView](mfl::httpd::Context<nlohmann::json>& ctx){
                     try {
-                        nlohmann::json body = nlohmann::json::parse(ctx.body);
-                        std::cout << ctx.body << std::endl;
-                        std::cout << body.dump() << std::endl;
-                        auto s = body["msg"].get<std::string>();
+                        std::cout << "bla bla" << std::endl;
+                        std::cout << ctx.body.dump() << std::endl;
+                        auto s = ctx.body["msg"].get<std::string>();
                         std::cout << s << std::endl;
                         mainView.setMessage(s);
                     } catch(...) {
@@ -75,8 +58,15 @@ void app_main() {
                     }
 
                     nlohmann::json res = {};
-                    ctx.res.set(res);
-                }));
+                    ctx.res.body = res;
+                };
+
+                router.put("/foo/bar", f);
+
+                mfl::httpd::Handler<std::string> g = [](mfl::httpd::Context<std::string>&){
+                    std::cout << "hello" << std::endl;
+                };
+                router.get("/blub", g);
             },
             [&mainView] {
                 ESP_LOGI(tag, "failed to start wifi");

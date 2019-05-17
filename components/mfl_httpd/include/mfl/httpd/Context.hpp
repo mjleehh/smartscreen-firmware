@@ -1,8 +1,8 @@
 #pragma once
 
 #include <mfl/httpd/Response.hpp>
+#include <mfl/httpd/Method.hpp>
 
-#include <esp_http_server.h>
 #include <map>
 
 namespace mfl::httpd {
@@ -13,16 +13,14 @@ using Params = std::map<std::string, std::string>;
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+template<typename InT, typename OutT = InT>
 struct Context {
-    Context(Params&& params, std::string&& body, httpd_req_t* handle)
-        : params(params), body(body), handle(handle)
-    {}
-
+    Method method;
+    std::string uri;
     Params params;
-    std::string body;
-    httpd_req_t *handle;
 
-    Response res;
+    InT body;
+    Response<OutT> res;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
