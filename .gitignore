@@ -3,3 +3,4 @@ cmake-build*
 build
 *.old
 *.bak
+notes.txt
