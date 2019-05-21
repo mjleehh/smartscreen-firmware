@@ -7,6 +7,7 @@
 #include <map>
 #include <functional>
 #include <vector>
+#include <optional>
 
 namespace mfl {
 

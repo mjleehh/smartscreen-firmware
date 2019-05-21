@@ -10,6 +10,11 @@ namespace mfl::httpd {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+/**
+ * Router middleware for HTTP server.
+ *
+ * Allows gin like requests.
+ */
 struct Router {
     Router();
 

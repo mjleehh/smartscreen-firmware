@@ -1,0 +1,48 @@
+menu "smartscreen"
+
+    config SMARTSCREEN_WIFI_SSID
+        string "ssid"
+        help
+            the wifi network to be used by the smartscreen
+
+    config SMARTSCREEN_WIFI_PASSWORD
+        string "wifi password"
+        help
+            the wifi password to be used by the smartscreen
+
+    config SMARTSCREEN_DISPLAY_CLOCK_PIN
+        int "display clock pin"
+        default 15
+        help
+            I2C clock pin for the display controller
+
+    config SMARTSCREEN_DISPLAY_DATA_PIN
+        int "display data pin"
+        default 4
+        help
+            I2C data pin for the display controller
+
+    config SMARTSCREEN_DISPLAY_RESET_PIN
+        int "display reset pin"
+        default 16
+        help
+            reset pin for the display controller
+
+    config SMARTSCREEN_DEVICE_ID
+        string "device id"
+        default "smartscreen-1"
+        help
+            the id of this smartscren
+
+    config SMARTSCREEN_HOME_ADDRESS
+        string "home address"
+        help
+            the address of this smartscreen's home backend
+
+    config SMARTSCREEN_HOSTNAME
+        string "host name"
+        default "smartscreen"
+        help
+            the mDNS name of this device
+
+endmenu
