@@ -1,7 +1,7 @@
 #pragma once
 
 #include <mfl/httpd/Response.hpp>
-#include <mfl/httpd/Method.hpp>
+#include <mfl/http/Method.hpp>
 
 #include <map>
 
@@ -15,7 +15,7 @@ using Params = std::map<std::string, std::string>;
 
 template<typename InT, typename OutT = InT>
 struct Context {
-    Method method;
+    http::Method method;
     std::string uri;
     Params params;
 

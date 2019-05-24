@@ -40,19 +40,19 @@ const char* responseCodeStrings(httpd::Status response) {
     return HTTPD_500;
 }
 
-httpd::Method methodFromRequest(int method) {
+http::Method methodFromRequest(int method) {
     using namespace httpd;
     switch (method) {
         case HTTP_POST:
-            return Method::post;
+            return http::Method::post;
         case HTTP_GET:
-            return Method::get;
+            return http::Method::get;
         case HTTP_PUT:
-            return Method::put;
+            return http::Method::put;
         case HTTP_DELETE:
-            return Method::del;
+            return http::Method::del;
         default:
-            throw httpd::UnsupportedMethod();
+            throw http::UnsupportedMethod();
     }
 }
 

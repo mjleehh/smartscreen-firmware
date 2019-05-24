@@ -21,50 +21,50 @@ PathNode::PathNode(std::vector<std::string> &&args) : args(args) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-Handler<std::string>& PathNode::handlerFromMethod(Method method) {
+Handler<std::string>& PathNode::handlerFromMethod(http::Method method) {
     switch (method) {
-        case Method::post:
+        case http::Method::post:
             return post;
-        case Method::get:
+        case http::Method::get:
             return get;
-        case Method::put:
+        case http::Method::put:
             return put;
-        case Method::del:
+        case http::Method::del:
             return del;
         default:
-            ESP_LOGE(tag, "unsupported method");
-            throw UnsupportedMethod();
+            ESP_LOGE(tag, "unsupported http::Method");
+            throw http::UnsupportedMethod();
 
     }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-const Handler<std::string> &PathNode::handlerFromMethod(Method method) const {
+const Handler<std::string> &PathNode::handlerFromMethod(http::Method method) const {
     switch (method) {
-        case Method::post:
+        case http::Method::post:
             return post;
-        case Method::get:
+        case http::Method::get:
             return get;
-        case Method::put:
+        case http::Method::put:
             return put;
-        case Method::del:
+        case http::Method::del:
             return del;
         default:
-            ESP_LOGE(tag, "unsopported method");
-            throw UnsupportedMethod();
+            ESP_LOGE(tag, "unsopported http::Method");
+            throw http::UnsupportedMethod();
     }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-bool PathNode::hasHandler(Method method) const {
+bool PathNode::hasHandler(http::Method method) const {
     return handlerFromMethod(method).operator bool();
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void PathNode::setHandler(Method method, const Handler<std::string> &handler) {
+void PathNode::setHandler(http::Method method, const Handler<std::string> &handler) {
     handlerFromMethod(method) = handler;
 }
 

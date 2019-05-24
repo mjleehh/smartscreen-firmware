@@ -3,12 +3,12 @@
 #include <mfl/httpd/Response.hpp>
 #include <nlohmann/json.hpp>
 
-namespace mfl::httpd::response_types {
+namespace mfl::http::response_types {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 template<>
-std::string typeString<nlohmann::json>() {
+std::string getMimeType<nlohmann::json>() {
     return "application/json";
 }
 
@@ -25,6 +25,7 @@ template<>
 nlohmann::json deserialize(const std::string& reqBody) {
     return nlohmann::json::parse(reqBody);
 }
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 }

@@ -41,7 +41,7 @@ Router::Router()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void Router::addPlainHandler(Method method, const std::string& uriTemplate, const Handler<std::string>& handler) {
+void Router::addPlainHandler(http::Method method, const std::string& uriTemplate, const Handler<std::string>& handler) {
     auto uri = splitUrl(uriTemplate);
 
     auto *node = &root_;

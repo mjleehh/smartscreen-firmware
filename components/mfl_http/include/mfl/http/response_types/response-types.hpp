@@ -1,16 +1,16 @@
 #pragma once
 
-namespace mfl::httpd::response_types {
+namespace mfl::http::response_types {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 template<typename T>
-std::string typeString();
+inline std::string getMimeType();
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 template<>
-inline std::string typeString<std::string>() {
+inline std::string getMimeType<std::string>() {
     return "text/plain";
 }
 
