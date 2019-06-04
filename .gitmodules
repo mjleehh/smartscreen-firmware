@@ -1,6 +1,6 @@
-[submodule "libs/u8g2"]
-	path = libs/u8g2
-	url = https://github.com/olikraus/u8g2.git
-[submodule "libs/json/src"]
+[submodule "libs/modern_json/src"]
 	path = libs/modern_json/src
 	url = https://github.com/nlohmann/json.git
+[submodule "mfl"]
+	path = mfl
+	url = git@github.com:mjleehh/esp32-base.git
